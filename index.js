@@ -1,3 +1,4 @@
+const { seasons: narutoSeasons, episodes: narutoEps, DRIVE } = require('./naruto')
 const express = require('express')
 const app = express()
 const PORT = process.env.PORT || 7000
@@ -135,6 +136,40 @@ app.get('/stream/:type/:id.json', (req, res) => {
   const season = Number(parts[1] || 1)
   const episode = Number(parts[2] || 1)
   res.json({ streams: embeds(type === 'series' ? 'tv' : 'movie', tmdbId, season, episode) })
+})
+
+
+app.get('/catalog/series/naruto.json', (req, res) => {
+  const q = (req.query.search || '').toLowerCase()
+  const metas = narutoSeasons
+    .filter((s) => !q || s.name.toLowerCase().includes(q))
+    .map((s) => ({ id: 'naruto:' + s.id, type: 'series', name: s.name, poster: s.poster }))
+  res.json({ metas })
+})
+
+app.get('/meta/series/:id.json', (req, res) => {
+  const sid = req.params.id.replace('naruto:', '')
+  const season = narutoSeasons.find((s) => s.id === sid)
+  if (!season) return res.json({ meta: { id: req.params.id, type: 'series', name: 'Naruto' } })
+  const eps = (narutoEps[sid] || []).map((e, i) => ({
+    id: 'naruto:' + sid + ':' + e[0],
+    title: e[1],
+    season: 1,
+    episode: i + 1,
+    overview: e[3] || '',
+  }))
+  res.json({ meta: { id: req.params.id, type: 'series', name: season.name, poster: season.poster, videos: eps } })
+})
+
+app.get('/stream/series/:id.json', (req, res) => {
+  const parts = req.params.id.split(':')
+  if (parts[0] !== 'naruto') return res.json({ streams: [] })
+  const sid = parts[1]
+  const epNum = parts[2]
+  const list = narutoEps[sid] || []
+  const ep = list.find((e) => e[0] === epNum)
+  if (!ep) return res.json({ streams: [] })
+  res.json({ streams: [{ name: 'MFY', title: ep[1], url: DRIVE(ep[2]) }] })
 })
 
 app.get('/', (_req, res) => res.redirect('/manifest.json'))
