@@ -1,0 +1,10 @@
+{
+  "name": "mfy-stremio",
+  "version": "1.0.0",
+  "description": "MFY as a Stremio addon. Catalogs plus the same embed players.",
+  "main": "index.js",
+  "type": "commonjs",
+  "scripts": { "start": "node index.js" },
+  "engines": { "node": ">=18" },
+  "dependencies": { "express": "^4.21.0" }
+}
